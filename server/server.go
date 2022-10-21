@@ -4,11 +4,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"os"
-	"sync"
 
 	// this has to be the same as the go.mod module,
 	// followed by the path to the folder the proto file is in.
@@ -22,8 +20,8 @@ type Server struct {
 	name                             string // Not required but useful if you want to name your server
 	port                             string // Not required but useful if your server needs to know what port it's listening to
 
-	incrementValue int64      // value that clients can increment.
-	mutex          sync.Mutex // used to lock the server to avoid race conditions.
+	LamportTime int64      // value that clients can increment.
+	streams map[string]*gRPC.Template_JoinServer // map of streams
 }
 
 // flags are used to get arguments from the terminal. Flags take a value, a default value and a description of the flag.
@@ -33,7 +31,8 @@ var port = flag.String("port", "5400", "Server port")           // set with "-po
 
 func main() {
 
-	// setLog() //uncomment this line to log to a log.txt file instead of the console
+	f := setLog() //uncomment this line to log to a log.txt file instead of the console
+	defer f.Close();
 
 	// This parses the flags and sets the correct/given corresponding values.
 	flag.Parse()
@@ -46,12 +45,12 @@ func main() {
 }
 
 func launchServer() {
-	log.Printf("Server %s: Attempts to create listener on port %s\n", *serverName, *port)
+	fmt.Printf("Server %s: Attempts to create listener on port %s\n", *serverName, *port)
 
 	// Create listener tcp on given port or default port 5400
 	list, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", *port))
 	if err != nil {
-		log.Printf("Server %s: Failed to listen on port %s: %v", *serverName, *port, err) //If it fails to listen on the port, run launchServer method again with the next value/port in ports array
+		fmt.Printf("Server %s: Failed to listen on port %s: %v", *serverName, *port, err) //If it fails to listen on the port, run launchServer method again with the next value/port in ports array
 		return
 	}
 
@@ -64,12 +63,13 @@ func launchServer() {
 	server := &Server{
 		name:           *serverName,
 		port:           *port,
-		incrementValue: 0, // gives default value, but not sure if it is necessary
+		streams: make(map[string]*gRPC.Template_JoinServer),
+		LamportTime: 0,
 	}
 
 	gRPC.RegisterTemplateServer(grpcServer, server) //Registers the server to the gRPC server.
 
-	log.Printf("Server %s: Listening at %v\n", *serverName, list.Addr())
+	fmt.Printf("Server %s: Listening at %v\n", *serverName, list.Addr())
 
 	if err := grpcServer.Serve(list); err != nil {
 		log.Fatalf("failed to serve %v", err)
@@ -77,41 +77,35 @@ func launchServer() {
 	// code here is unreachable because grpcServer.Serve occupies the current thread.
 }
 
-// The method format can be found in the pb.go file. If the format is wrong, the server type will give an error.
-func (s *Server) Increment(ctx context.Context, Amount *gRPC.Amount) (*gRPC.Ack, error) {
-	// locks the server ensuring no one else can increment the value at the same time.
-	// and unlocks the server when the method is done.
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.Template_JoinServer) error {
+	log.Printf("Server %s: Join request from %s\n", s.name, request.Name)
 
-	// increments the value by the amount given in the request,
-	// and returns the new value.
-	s.incrementValue += int64(Amount.GetValue())
-	return &gRPC.Ack{NewValue: s.incrementValue}, nil
-}
+	// adds the stream to the streams map
+	s.streams[request.Name] = &stream
 
-func (s *Server) SayHi(msgStream gRPC.Template_SayHiServer) error {
-	for {
-		// get the next message from the stream
-		msg, err := msgStream.Recv()
-
-		// the stream is closed so we can exit the loop
-		if err == io.EOF {
-			break
-		}
-		// some other error
-		if err != nil {
-			return err
-		}
-		// log the message
-		log.Printf("Received message from %s: %s", msg.ClientName, msg.Message)
+	// sends a message to the client
+	if err := stream.Send(&gRPC.Message{
+		Sender: "Server",
+		Message: "Welcome to the server!",
+		LamportTime: 0,
+	}); err != nil {
+		return err
 	}
 
-	// be a nice server and say goodbye to the client :)
-	ack := &gRPC.Farewell{Message: "Goodbye"}
-	msgStream.SendAndClose(ack)
-
+	<-stream.Context().Done()
+	delete(s.streams, request.Name)
+	log.Println(request.Name, "disconnected")
 	return nil
+}
+
+func (s *Server) Publish(ctx context.Context, message *gRPC.Message) (*gRPC.PublishResponse, error) {
+	for _, stream := range s.streams {
+		if err := (*stream).Send(message); err != nil {
+			return nil, err
+		}
+	}
+
+	return &gRPC.PublishResponse{ Message: "send"}, nil
 }
 
 // Get preferred outbound ip of this machine
@@ -129,7 +123,7 @@ func GetOutboundIP() net.IP {
 }
 
 // sets the logger to use a log.txt file instead of the console
-func setLog() {
+func setLog() *os.File {
 	// Clears the log.txt file when a new server is started
 	if err := os.Truncate("log.txt", 0); err != nil {
 		log.Printf("Failed to truncate: %v", err)
@@ -140,6 +134,6 @@ func setLog() {
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
-	defer f.Close()
 	log.SetOutput(f)
+	return f
 }

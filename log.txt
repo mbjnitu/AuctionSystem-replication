@@ -1,0 +1,5 @@
+2022/10/21 22:17:51 client default: Attempts to dial on port 5400
+2022/10/21 22:17:51 the connection is:  READY
+2022/10/21 22:17:51 Client  default  is joining the server
+2022/10/21 22:17:51 Server default: Join request from default
+2022/10/21 22:17:52 EOF

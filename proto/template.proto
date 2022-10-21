@@ -12,13 +12,11 @@ package proto;
 // you can call it whatever you want
 service Template
 {
-    //one message is sent and one is recieved
     rpc Join (JoinRequest) returns (stream Message);
 
-    // many messages are sent and one is recieved
     rpc Publish (Message) returns (PublishResponse);
 
-    rpc Leave (LeaveRequest) returns (LeaveResponse);
+    rpc Leave (LeaveRequest) returns (LeaveResponse); // not in use
 }
 
 message JoinRequest {

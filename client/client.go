@@ -5,9 +5,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 
 	gRPC "github.com/PatrickMatthiesen/ChittyChat/proto"
@@ -19,6 +19,7 @@ import (
 // Same principle as in client. Flags allows for user specific arguments/values
 var clientsName = flag.String("name", "default", "Senders name")
 var serverPort = flag.String("server", "5400", "Tcp server")
+var lamportTime = flag.Int64("lamport", 0, "Lamport time")
 
 var server gRPC.TemplateClient  //the server
 var ServerConn *grpc.ClientConn //the server connection
@@ -30,11 +31,13 @@ func main() {
 	fmt.Println("--- CLIENT APP ---")
 
 	//log to file instead of console
-	//setLog()
+	f := setLog()
+	defer f.Close()
 
 	//connect to server and close the connection when program closes
 	fmt.Println("--- join Server ---")
 	ConnectToServer()
+	go joinChat()
 	defer ServerConn.Close()
 
 	//start the biding
@@ -43,7 +46,6 @@ func main() {
 
 // connect to server
 func ConnectToServer() {
-
 	//dial options
 	//the server is not using TLS, so we use insecure credentials
 	//(should be fine for local testing but not in the real world)
@@ -51,10 +53,10 @@ func ConnectToServer() {
 	opts = append(opts, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	//dial the server, with the flag "server", to get a connection to it
-	log.Printf("client %s: Attempts to dial on port %s\n", *clientsName, *serverPort)
+	fmt.Printf("client %s: Attempts to dial on port %s\n", *clientsName, *serverPort)
 	conn, err := grpc.Dial(fmt.Sprintf(":%s", *serverPort), opts...)
 	if err != nil {
-		log.Printf("Fail to Dial : %v", err)
+		fmt.Printf("Fail to Dial : %v", err)
 		return
 	}
 
@@ -62,7 +64,42 @@ func ConnectToServer() {
 	// and prints rather or not the connection was is READY
 	server = gRPC.NewTemplateClient(conn)
 	ServerConn = conn
-	log.Println("the connection is: ", conn.GetState().String())
+	fmt.Println("the connection is: ", conn.GetState().String())
+}
+
+func joinChat() {
+	joinRequest := &gRPC.JoinRequest{
+		Name:        *clientsName,
+		LamportTime: 0,
+	}
+	log.Println(*clientsName, " is joining the chat")
+	stream, _ := server.Join(context.Background(), joinRequest)
+
+	for {
+		select {
+		case <-stream.Context().Done():
+			fmt.Println("Connection to server closed")
+			return // stream is done
+		default:
+		}
+
+		incomeing, err := stream.Recv()
+		if err == io.EOF {
+			fmt.Println("Server closed the stream")
+			return
+		}
+		if err != nil {
+			log.Fatalf("Failed to receive message from channel joining. \nErr: %v", err)
+		}
+
+		if incomeing.LamportTime > *lamportTime {
+			*lamportTime = incomeing.LamportTime + 1
+		} else {
+			*lamportTime++
+		}
+		fmt.Printf("\rLamport: %v | %v: %v \n", *lamportTime, incomeing.Sender, incomeing.Message)
+		fmt.Print("-> ")
+	}
 }
 
 func parseInput() {
@@ -71,9 +108,8 @@ func parseInput() {
 	fmt.Println("--------------------")
 
 	//Infinite loop to listen for clients input.
+	fmt.Print("-> ")
 	for {
-		fmt.Print("-> ")
-
 		//Read input into var input and any errors into err
 		input, err := reader.ReadString('\n')
 		if err != nil {
@@ -86,62 +122,21 @@ func parseInput() {
 			continue
 		}
 
-		//Convert string to int64, return error if the int is larger than 32bit or not a number
-		val, err := strconv.ParseInt(input, 10, 64)
+		response, err := server.Publish(context.Background(), &gRPC.Message{
+			Sender:      *clientsName,
+			Message:     input,
+			LamportTime: *lamportTime,
+		})
+
 		if err != nil {
-			if input == "hi" {
-				sayHi()
-			}
+			log.Printf("Client %s: something went wrong with the server :(", *clientsName)
 			continue
 		}
-		incrementVal(val)
+		if response.Message != "send" {
+			log.Printf("Client %s: something went wrong with the server :(", *clientsName)
+			continue
+		}
 	}
-}
-
-func incrementVal(val int64) {
-	//create amount type
-	amount := &gRPC.Amount{
-		ClientName: *clientsName,
-		Value:      val, //cast from int to int32
-	}
-
-	//Make gRPC call to server with amount, and recieve acknowlegdement back.
-	ack, err := server.Increment(context.Background(), amount)
-	if err != nil {
-		log.Printf("Client %s: no response from the server, attempting to reconnect", *clientsName)
-		log.Println(err)
-	}
-
-	// check if the server has handled the request correctly
-	if ack.NewValue >= val {
-		fmt.Printf("Success, the new value is now %d\n", ack.NewValue)
-	} else {
-		// something could be added here to handle the error
-		// but hopefully this will never be reached
-		fmt.Println("Oh no something went wrong :(")
-	}
-}
-
-func sayHi() {
-	// get a stream to the server
-	stream, err := server.SayHi(context.Background())
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	// send some messages to the server
-	stream.Send(&gRPC.Greeding{ClientName: *clientsName, Message: "Hi"})
-	stream.Send(&gRPC.Greeding{ClientName: *clientsName, Message: "How are you?"})
-	stream.Send(&gRPC.Greeding{ClientName: *clientsName, Message: "I'm fine, thanks."})
-
-	// close the stream
-	farewell, err := stream.CloseAndRecv()
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	log.Println("server says: ", farewell)
 }
 
 // Function which returns a true boolean if the connection to the server is ready, and false if it's not.
@@ -150,11 +145,11 @@ func conReady(s gRPC.TemplateClient) bool {
 }
 
 // sets the logger to use a log.txt file instead of the console
-func setLog() {
+func setLog() *os.File {
 	f, err := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
-	defer f.Close()
 	log.SetOutput(f)
+	return f
 }

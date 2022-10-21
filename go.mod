@@ -1,4 +1,4 @@
-module github.com/DarkLordOfDeadstiny/ChittyChat
+module github.com/PatrickMatthiesen/ChittyChat
 
 go 1.19
 
