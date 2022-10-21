@@ -12,7 +12,7 @@ import (
 
 	// this has to be the same as the go.mod module,
 	// followed by the path to the folder the proto file is in.
-	gRPC "github.com/PatrickMatthiesen/DSYS-ChittyChat/proto"
+	gRPC "github.com/PatrickMatthiesen/ChittyChat/proto"
 
 	"google.golang.org/grpc"
 )

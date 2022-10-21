@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	gRPC "github.com/PatrickMatthiesen/DSYS-gRPC-template/proto"
+	gRPC "github.com/PatrickMatthiesen/ChittyChat/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

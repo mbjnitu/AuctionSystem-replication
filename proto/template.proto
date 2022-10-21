@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/PatrickMatthiesen/DSYS-ChittyChat/proto";
+option go_package = "github.com/PatrickMatthiesen/ChittyChat/proto";
 
 package proto;
 

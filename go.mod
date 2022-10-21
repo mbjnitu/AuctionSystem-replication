@@ -1,9 +1,8 @@
-module github.com/DarkLordOfDeadstiny/DSYS-ChittyChat
+module github.com/DarkLordOfDeadstiny/ChittyChat
 
 go 1.19
 
 require (
-	github.com/PatrickMatthiesen/DSYS-gRPC-template v0.0.0-20221012085623-a3ea58db9b52
 	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.28.1
 )
