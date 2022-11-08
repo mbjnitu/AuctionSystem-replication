@@ -10,13 +10,13 @@ package proto;
 
 // The template service definition.
 // you can call it whatever you want
-service Template
+service ChittyChat
 {
+    // get a stream from the server -> client for messages
     rpc Join (JoinRequest) returns (stream Message);
 
+    // publish a message in the chat
     rpc Publish (Message) returns (PublishResponse);
-
-    rpc Leave (LeaveRequest) returns (LeaveResponse); // not in use
 }
 
 message JoinRequest {
@@ -30,14 +30,4 @@ message Message {
     int64 lamportTime = 3;
 }
 
-message PublishResponse {
-    string message = 1;
-}
-
-message LeaveRequest {
-    string name = 1;
-}
-
-message LeaveResponse {
-    string message = 1;
-}
+message PublishResponse {}

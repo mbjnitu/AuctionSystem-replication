@@ -16,12 +16,12 @@ import (
 )
 
 type Server struct {
-	gRPC.UnimplementedTemplateServer        // You need this line if you have a server
+	gRPC.UnimplementedChittyChatServer        // You need this line if you have a server
 	name                             string // Not required but useful if you want to name your server
 	port                             string // Not required but useful if your server needs to know what port it's listening to
 
 	LamportTime int64      // value that clients can increment.
-	streams map[string]*gRPC.Template_JoinServer // map of streams
+	streams map[string]*gRPC.ChittyChat_JoinServer // map of streams
 }
 
 // flags are used to get arguments from the terminal. Flags take a value, a default value and a description of the flag.
@@ -63,11 +63,11 @@ func launchServer() {
 	server := &Server{
 		name:           *serverName,
 		port:           *port,
-		streams: make(map[string]*gRPC.Template_JoinServer),
+		streams: make(map[string]*gRPC.ChittyChat_JoinServer),
 		LamportTime: 0,
 	}
 
-	gRPC.RegisterTemplateServer(grpcServer, server) //Registers the server to the gRPC server.
+	gRPC.RegisterChittyChatServer(grpcServer, server) //Registers the server to the gRPC server.
 
 	fmt.Printf("Server %s: Listening at %v\n", *serverName, list.Addr())
 
@@ -77,7 +77,7 @@ func launchServer() {
 	// code here is unreachable because grpcServer.Serve occupies the current thread.
 }
 
-func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.Template_JoinServer) error {
+func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.ChittyChat_JoinServer) error {
 	log.Printf("Server %s: Join request from %s\n", s.name, request.Name)
 
 	// adds the stream to the streams map
@@ -87,7 +87,7 @@ func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.Template_JoinServer
 	if err := stream.Send(&gRPC.Message{
 		Sender: "Server",
 		Message: "Welcome to the server!",
-		LamportTime: 0,
+		LamportTime: s.LamportTime,
 	}); err != nil {
 		return err
 	}
@@ -101,11 +101,13 @@ func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.Template_JoinServer
 func (s *Server) Publish(ctx context.Context, message *gRPC.Message) (*gRPC.PublishResponse, error) {
 	for _, stream := range s.streams {
 		if err := (*stream).Send(message); err != nil {
-			return nil, err
+			delete(s.streams, message.Sender)
+			log.Println(message.Sender, "disconnected")
+			continue
 		}
 	}
 
-	return &gRPC.PublishResponse{ Message: "send"}, nil
+	return &gRPC.PublishResponse{}, nil
 }
 
 // Get preferred outbound ip of this machine

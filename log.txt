@@ -1,5 +1,12 @@
-2022/10/21 22:17:51 client default: Attempts to dial on port 5400
-2022/10/21 22:17:51 the connection is:  READY
-2022/10/21 22:17:51 Client  default  is joining the server
-2022/10/21 22:17:51 Server default: Join request from default
-2022/10/21 22:17:52 EOF
+2022/11/08 21:37:22 alice  is joining the chat
+2022/11/08 21:37:22 Server default: Join request from alice
+2022/11/08 21:37:30 bob  is joining the chat
+2022/11/08 21:37:30 Server default: Join request from bob
+2022/11/08 21:46:23 charles  is joining the chat
+2022/11/08 21:46:23 Server default: Join request from charles
+2022/11/08 22:01:02 EOF
+2022/11/08 22:01:02 charles disconnected
+2022/11/08 22:01:05 EOF
+2022/11/08 22:01:05 bob disconnected
+2022/11/08 22:01:06 EOF
+2022/11/08 22:01:06 alice disconnected

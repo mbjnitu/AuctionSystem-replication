@@ -21,38 +21,33 @@ var clientsName = flag.String("name", "default", "Senders name")
 var serverPort = flag.String("server", "5400", "Tcp server")
 var lamportTime = flag.Int64("lamport", 0, "Lamport time")
 
-var server gRPC.TemplateClient  //the server
-var ServerConn *grpc.ClientConn //the server connection
+var server gRPC.ChittyChatClient //the server
+var ServerConn *grpc.ClientConn  //the server connection
 
 func main() {
 	//parse flag/arguments
 	flag.Parse()
 
-	fmt.Println("--- CLIENT APP ---")
+	fmt.Println("--- Welcome to Chitty Chat ---")
 
 	//log to file instead of console
 	f := setLog()
 	defer f.Close()
 
 	//connect to server and close the connection when program closes
-	fmt.Println("--- join Server ---")
-	ConnectToServer()
-	go joinChat()
+	connectToServer()
 	defer ServerConn.Close()
+	go joinChat()
 
-	//start the biding
-	parseInput()
+	// start allowing user input
+	parseAndSendInput()
 }
 
 // connect to server
-func ConnectToServer() {
-	//dial options
-	//the server is not using TLS, so we use insecure credentials
-	//(should be fine for local testing but not in the real world)
+func connectToServer() {
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 
-	//dial the server, with the flag "server", to get a connection to it
 	fmt.Printf("client %s: Attempts to dial on port %s\n", *clientsName, *serverPort)
 	conn, err := grpc.Dial(fmt.Sprintf(":%s", *serverPort), opts...)
 	if err != nil {
@@ -60,11 +55,9 @@ func ConnectToServer() {
 		return
 	}
 
-	// makes a client from the server connection and saves the connection
-	// and prints rather or not the connection was is READY
-	server = gRPC.NewTemplateClient(conn)
+	server = gRPC.NewChittyChatClient(conn)
 	ServerConn = conn
-	fmt.Println("the connection is: ", conn.GetState().String())
+	// fmt.Println("the connection is: ", conn.GetState().String())
 }
 
 func joinChat() {
@@ -97,12 +90,14 @@ func joinChat() {
 		} else {
 			*lamportTime++
 		}
+
+		log.Printf("%s got message from %s: %s", *clientsName, incomeing.Sender, incomeing.Message)
 		fmt.Printf("\rLamport: %v | %v: %v \n", *lamportTime, incomeing.Sender, incomeing.Message)
 		fmt.Print("-> ")
 	}
 }
 
-func parseInput() {
+func parseAndSendInput() {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Type the amount you wish to increment with here. Type 0 to get the current value")
 	fmt.Println("--------------------")
@@ -110,38 +105,28 @@ func parseInput() {
 	//Infinite loop to listen for clients input.
 	fmt.Print("-> ")
 	for {
-		//Read input into var input and any errors into err
+		//Read user input to the next newline
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			log.Fatal(err)
 		}
-		input = strings.TrimSpace(input) //Trim input
+		input = strings.TrimSpace(input) //Trim whitespace
 
-		if !conReady(server) {
-			log.Printf("Client %s: something was wrong with the connection to the server :(", *clientsName)
-			continue
-		}
+		// we are sending a message so we increment the lamport time
+		*lamportTime++
 
+		// publish the message in the chat
 		response, err := server.Publish(context.Background(), &gRPC.Message{
 			Sender:      *clientsName,
 			Message:     input,
 			LamportTime: *lamportTime,
 		})
 
-		if err != nil {
-			log.Printf("Client %s: something went wrong with the server :(", *clientsName)
-			continue
-		}
-		if response.Message != "send" {
+		if err != nil || response == nil {
 			log.Printf("Client %s: something went wrong with the server :(", *clientsName)
 			continue
 		}
 	}
-}
-
-// Function which returns a true boolean if the connection to the server is ready, and false if it's not.
-func conReady(s gRPC.TemplateClient) bool {
-	return ServerConn.GetState().String() == "READY"
 }
 
 // sets the logger to use a log.txt file instead of the console
