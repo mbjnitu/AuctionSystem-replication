@@ -1,12 +1,8 @@
-2022/11/08 21:37:22 alice  is joining the chat
-2022/11/08 21:37:22 Server default: Join request from alice
-2022/11/08 21:37:30 bob  is joining the chat
-2022/11/08 21:37:30 Server default: Join request from bob
-2022/11/08 21:46:23 charles  is joining the chat
-2022/11/08 21:46:23 Server default: Join request from charles
-2022/11/08 22:01:02 EOF
-2022/11/08 22:01:02 charles disconnected
-2022/11/08 22:01:05 EOF
-2022/11/08 22:01:05 bob disconnected
-2022/11/08 22:01:06 EOF
-2022/11/08 22:01:06 alice disconnected
+2022/11/14 23:32:05 alice is joining the chat
+2022/11/14 23:32:05 Server: Join request from alice
+2022/11/14 23:32:05 alice got message from Server: Welcome alice to the Chitty Chat!
+2022/11/14 23:32:12 alice got message from alice: h
+2022/11/14 23:32:16 bob is joining the chat
+2022/11/14 23:32:16 Server: Join request from bob
+2022/11/14 23:32:16 alice got message from Server: Welcome bob to the Chitty Chat!
+2022/11/14 23:32:16 bob got message from Server: Welcome bob to the Chitty Chat!

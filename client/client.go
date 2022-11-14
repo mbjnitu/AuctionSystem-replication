@@ -65,7 +65,7 @@ func joinChat() {
 		Name:        *clientsName,
 		LamportTime: 0,
 	}
-	log.Println(*clientsName, " is joining the chat")
+	log.Println(*clientsName, "is joining the chat")
 	stream, _ := server.Join(context.Background(), joinRequest)
 
 	for {
@@ -78,11 +78,11 @@ func joinChat() {
 
 		incomeing, err := stream.Recv()
 		if err == io.EOF {
-			fmt.Println("Server closed the stream")
+			fmt.Println("Server is done sending messages")
 			return
 		}
 		if err != nil {
-			log.Fatalf("Failed to receive message from channel joining. \nErr: %v", err)
+			log.Fatalf("Failed to receive message from channel. \nErr: %v", err)
 		}
 
 		if incomeing.LamportTime > *lamportTime {

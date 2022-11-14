@@ -16,23 +16,21 @@ import (
 )
 
 type Server struct {
-	gRPC.UnimplementedChittyChatServer        // You need this line if you have a server
-	name                             string // Not required but useful if you want to name your server
-	port                             string // Not required but useful if your server needs to know what port it's listening to
+	gRPC.UnimplementedChittyChatServer        // You need this line if you have a server struct
+	port                               string // Not required but useful if your server needs to know what port it's listening to
 
-	LamportTime int64      // value that clients can increment.
-	streams map[string]*gRPC.ChittyChat_JoinServer // map of streams
+	LamportTime int64                                  // the Lamport time of the server
+	streams     map[string]*gRPC.ChittyChat_JoinServer // map of streams
 }
 
 // flags are used to get arguments from the terminal. Flags take a value, a default value and a description of the flag.
 // to use a flag then just add it as an argument when running the program.
-var serverName = flag.String("name", "default", "Senders name") // set with "-name <name>" in terminal
-var port = flag.String("port", "5400", "Server port")           // set with "-port <port>" in terminal
+var port = flag.String("port", "5400", "Server port") // set with "-port <port>" in terminal
 
 func main() {
 
 	f := setLog() //uncomment this line to log to a log.txt file instead of the console
-	defer f.Close();
+	defer f.Close()
 
 	// This parses the flags and sets the correct/given corresponding values.
 	flag.Parse()
@@ -45,12 +43,12 @@ func main() {
 }
 
 func launchServer() {
-	fmt.Printf("Server %s: Attempts to create listener on port %s\n", *serverName, *port)
+	fmt.Printf("Attempts to create listener on port %s\n", *port)
 
 	// Create listener tcp on given port or default port 5400
 	list, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", *port))
 	if err != nil {
-		fmt.Printf("Server %s: Failed to listen on port %s: %v", *serverName, *port, err) //If it fails to listen on the port, run launchServer method again with the next value/port in ports array
+		fmt.Printf("Failed to listen on port %s: %v", *port, err) //If it fails to listen on the port, run launchServer method again with the next value/port in ports array
 		return
 	}
 
@@ -61,15 +59,14 @@ func launchServer() {
 
 	// makes a new server instance using the name and port from the flags.
 	server := &Server{
-		name:           *serverName,
-		port:           *port,
-		streams: make(map[string]*gRPC.ChittyChat_JoinServer),
+		port:        *port,
+		streams:     make(map[string]*gRPC.ChittyChat_JoinServer),
 		LamportTime: 0,
 	}
 
 	gRPC.RegisterChittyChatServer(grpcServer, server) //Registers the server to the gRPC server.
 
-	fmt.Printf("Server %s: Listening at %v\n", *serverName, list.Addr())
+	fmt.Println("Clients should dial: ", GetOutboundIP())
 
 	if err := grpcServer.Serve(list); err != nil {
 		log.Fatalf("failed to serve %v", err)
@@ -78,36 +75,55 @@ func launchServer() {
 }
 
 func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.ChittyChat_JoinServer) error {
-	log.Printf("Server %s: Join request from %s\n", s.name, request.Name)
+	log.Printf("Server: Join request from %s\n", request.Name)
 
 	// adds the stream to the streams map
 	s.streams[request.Name] = &stream
 
 	// sends a message to the client
-	if err := stream.Send(&gRPC.Message{
-		Sender: "Server",
-		Message: "Welcome to the server!",
+	sendToAll(s.streams, &gRPC.Message{
+		Sender:      "Server",
+		Message:     "Welcome " + request.Name + " to the Chitty Chat!",
 		LamportTime: s.LamportTime,
-	}); err != nil {
-		return err
-	}
+	})
 
+	// waits for the stream to be closed
+	// then removes the stream from the streams map
+	// and sends a message to the other clients
 	<-stream.Context().Done()
 	delete(s.streams, request.Name)
 	log.Println(request.Name, "disconnected")
+
+	sendToAll(s.streams, &gRPC.Message{
+		Sender:      "Server",
+		Message:     request.Name + " has left the chat",
+		LamportTime: s.LamportTime,
+	})
 	return nil
 }
 
 func (s *Server) Publish(ctx context.Context, message *gRPC.Message) (*gRPC.PublishResponse, error) {
-	for _, stream := range s.streams {
+	if message.LamportTime < s.LamportTime {
+		message.LamportTime = s.LamportTime + 1
+	}
+
+	// update the Lamport time of the server
+	s.LamportTime = message.LamportTime
+
+	sendToAll(s.streams, message)
+
+	return &gRPC.PublishResponse{}, nil
+}
+
+// sends a message to all streams in the streams map
+func sendToAll(streams map[string]*gRPC.ChittyChat_JoinServer, message *gRPC.Message) {
+	for _, stream := range streams {
 		if err := (*stream).Send(message); err != nil {
-			delete(s.streams, message.Sender)
+			delete(streams, message.Sender)
 			log.Println(message.Sender, "disconnected")
 			continue
 		}
 	}
-
-	return &gRPC.PublishResponse{}, nil
 }
 
 // Get preferred outbound ip of this machine
