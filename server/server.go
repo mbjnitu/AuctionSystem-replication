@@ -87,7 +87,7 @@ func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.ChittyChat_JoinServ
 		LamportTime: s.LamportTime,
 	})
 
-	// waits for the stream to be closed
+	// waits for the stream to be closed -- happens when the client stops
 	// then removes the stream from the streams map
 	// and sends a message to the other clients
 	<-stream.Context().Done()
@@ -118,11 +118,7 @@ func (s *Server) Publish(ctx context.Context, message *gRPC.Message) (*gRPC.Publ
 // sends a message to all streams in the streams map
 func sendToAll(streams map[string]*gRPC.ChittyChat_JoinServer, message *gRPC.Message) {
 	for _, stream := range streams {
-		if err := (*stream).Send(message); err != nil {
-			delete(streams, message.Sender)
-			log.Println(message.Sender, "disconnected")
-			continue
-		}
+		(*stream).Send(message)
 	}
 }
 
