@@ -31,6 +31,8 @@ var serverName = "port" // name of the server
 var serverPort string   // port of the server port
 var serverSomething = "server port"
 
+// Vars related to bidding:
+
 func main() {
 	arg1, _ := strconv.ParseInt(os.Args[1], 10, 64)
 	serverPort32 := int64(arg1) + 5000
@@ -115,12 +117,21 @@ func (s *Server) Publish(ctx context.Context, message *gRPC.Message) (*gRPC.Publ
 		message.LamportTime = s.LamportTime + 1
 	}
 
+	println("omg i received a message: ", message.Message)
+
 	// update the Lamport time of the server
 	s.LamportTime = message.LamportTime
 
-	sendToAll(s.streams, message)
+	sendToSpecific(s.streams, message, message.Sender)
 
 	return &gRPC.PublishResponse{}, nil
+}
+
+// sends a message to a specific stream in the streams map
+func sendToSpecific(streams map[string]*gRPC.ChittyChat_JoinServer, message *gRPC.Message, sender string) {
+	stream := streams[sender]
+	(*stream).Send(message)
+	fmt.Println("server")
 }
 
 // sends a message to all streams in the streams map
