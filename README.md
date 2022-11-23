@@ -15,7 +15,9 @@ A user indicates to the server that it leaves when it stops the program.
 Server:
 
 ```sh
-go run .\server\
+go run .\server\ 0
+go run .\server\ 1
+go run .\server\ 2
 ```
 
 Client:
