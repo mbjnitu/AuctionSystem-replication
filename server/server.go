@@ -11,17 +11,16 @@ import (
 
 	// this has to be the same as the go.mod module,
 	// followed by the path to the folder the proto file is in.
-	gRPC "github.com/PatrickMatthiesen/ChittyChat/proto"
+	gRPC "github.com/mbjnitu/AuctionSystem-replication/proto"
 
 	"google.golang.org/grpc"
 )
 
 type Server struct {
-	gRPC.UnimplementedChittyChatServer        // You need this line if you have a server struct
-	port                               string // Not required but useful if your server needs to know what port it's listening to
+	gRPC.UnimplementedAuctionSystemServer        // You need this line if you have a server struct
+	port                                  string // Not required but useful if your server needs to know what port it's listening to
 
-	LamportTime int64                                  // the Lamport time of the server
-	streams     map[string]*gRPC.ChittyChat_JoinServer // map of streams
+	streams map[string]*gRPC.AuctionSystem_JoinServer // map of streams
 }
 
 // flags are used to get arguments from the terminal. Flags take a value, a default value and a description of the flag.
@@ -32,6 +31,7 @@ var serverPort string   // port of the server port
 var serverSomething = "server port"
 
 // Vars related to bidding:
+var currentAmount int64 = 0
 
 func main() {
 	arg1, _ := strconv.ParseInt(os.Args[1], 10, 64)
@@ -69,12 +69,11 @@ func launchServer() {
 
 	// makes a new server instance using the name and port from the flags.
 	server := &Server{
-		port:        *port,
-		streams:     make(map[string]*gRPC.ChittyChat_JoinServer),
-		LamportTime: 0,
+		port:    *port,
+		streams: make(map[string]*gRPC.AuctionSystem_JoinServer),
 	}
 
-	gRPC.RegisterChittyChatServer(grpcServer, server) //Registers the server to the gRPC server.
+	gRPC.RegisterAuctionSystemServer(grpcServer, server) //Registers the server to the gRPC server.
 
 	fmt.Println("Clients should dial: ", GetOutboundIP())
 
@@ -84,7 +83,7 @@ func launchServer() {
 	// code here is unreachable because grpcServer.Serve occupies the current thread.
 }
 
-func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.ChittyChat_JoinServer) error {
+func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.AuctionSystem_JoinServer) error {
 	log.Printf("Server: Join request from %s\n", request.Name)
 
 	// adds the stream to the streams map
@@ -92,9 +91,9 @@ func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.ChittyChat_JoinServ
 
 	// sends a message to the client
 	sendToAll(s.streams, &gRPC.Message{
-		Sender:      "Server",
-		Message:     "Welcome " + request.Name + " to the Chitty Chat!",
-		LamportTime: s.LamportTime,
+		Sender:  "Server",
+		Message: "Welcome " + request.Name + " to the Chitty Chat!",
+		Bid:     0,
 	})
 
 	// waits for the stream to be closed -- happens when the client stops
@@ -105,37 +104,58 @@ func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.ChittyChat_JoinServ
 	log.Println(request.Name, "disconnected")
 
 	sendToAll(s.streams, &gRPC.Message{
-		Sender:      "Server",
-		Message:     request.Name + " has left the chat",
-		LamportTime: s.LamportTime,
+		Sender:  "Server",
+		Message: request.Name + " has left the chat",
+		Bid:     0,
 	})
 	return nil
 }
 
 func (s *Server) Publish(ctx context.Context, message *gRPC.Message) (*gRPC.PublishResponse, error) {
-	if message.LamportTime < s.LamportTime {
-		message.LamportTime = s.LamportTime + 1
-	}
 
 	println("omg i received a message: ", message.Message)
 
-	// update the Lamport time of the server
-	s.LamportTime = message.LamportTime
-
-	sendToSpecific(s.streams, message, message.Sender)
+	processInput(message, s.streams)
 
 	return &gRPC.PublishResponse{}, nil
 }
 
+func processInput(message *gRPC.Message, streams map[string]*gRPC.AuctionSystem_JoinServer) {
+	if message.Message == "bid" {
+		if message.Bid > currentAmount {
+			currentAmount = message.Bid
+			sendToAll(streams, &gRPC.Message{
+				Sender:  "Server",
+				Message: "A new highest bet has been set by " + message.Sender + "with a value of: ",
+				Bid:     currentAmount,
+			})
+		} else if message.Bid <= currentAmount {
+			sendToSpecific(streams, &gRPC.Message{
+				Sender:  "Server",
+				Message: "Your bid is not greater than the current highest bid of: ",
+				Bid:     currentAmount,
+			}, message.Sender)
+		} else {
+			//IMPLEMENT AUCTION OVER
+		}
+	} else if message.Message == "result" {
+		sendToSpecific(streams, &gRPC.Message{
+			Sender:  "Server",
+			Message: "The current result is: ",
+			Bid:     currentAmount,
+		}, message.Sender)
+	}
+}
+
 // sends a message to a specific stream in the streams map
-func sendToSpecific(streams map[string]*gRPC.ChittyChat_JoinServer, message *gRPC.Message, sender string) {
+func sendToSpecific(streams map[string]*gRPC.AuctionSystem_JoinServer, message *gRPC.Message, sender string) {
 	stream := streams[sender]
 	(*stream).Send(message)
 	fmt.Println("server")
 }
 
 // sends a message to all streams in the streams map
-func sendToAll(streams map[string]*gRPC.ChittyChat_JoinServer, message *gRPC.Message) {
+func sendToAll(streams map[string]*gRPC.AuctionSystem_JoinServer, message *gRPC.Message) {
 	for _, stream := range streams {
 		(*stream).Send(message)
 	}

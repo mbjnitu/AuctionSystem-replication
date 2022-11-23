@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/PatrickMatthiesen/ChittyChat/proto";
+option go_package = "github.com/mbjnitu/AuctionSystem-replication/proto";
 
 package proto;
 
@@ -10,7 +10,7 @@ package proto;
 
 // The template service definition.
 // you can call it whatever you want
-service ChittyChat
+service AuctionSystem
 {
     // get a stream from the server -> client for messages
     rpc Join (JoinRequest) returns (stream Message);
@@ -21,13 +21,12 @@ service ChittyChat
 
 message JoinRequest {
     string name = 1;
-    int64 lamportTime = 2;
 }
 
 message Message {
     string sender = 1;
     string message = 2;
-    int64 lamportTime = 3;
+    int64 bid = 3;
 }
 
 message PublishResponse {}

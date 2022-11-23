@@ -1,4 +1,5 @@
-module github.com/PatrickMatthiesen/ChittyChat
+module github.com/mbjnitu/AuctionSystem-replication
+
 
 go 1.19
 

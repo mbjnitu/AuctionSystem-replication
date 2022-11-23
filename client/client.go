@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	gRPC "github.com/PatrickMatthiesen/ChittyChat/proto"
+	gRPC "github.com/mbjnitu/AuctionSystem-replication/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -22,9 +22,8 @@ var clientsName = flag.String("name", "default", "Senders name")
 var serverPort0 = flag.String("server0", "5000", "Tcp server")
 var serverPort1 = flag.String("server1", "5001", "Tcp server")
 var serverPort2 = flag.String("server2", "5001", "Tcp server")
-var lamportTime = flag.Int64("lamport", 0, "Lamport time")
 
-var servers = []gRPC.ChittyChatClient{}
+var servers = []gRPC.AuctionSystemClient{}
 var serverConns []*grpc.ClientConn
 
 func main() {
@@ -64,14 +63,13 @@ func connectToServer(serverName string, serverPort string) {
 		return
 	}
 
-	servers = append(servers, gRPC.NewChittyChatClient(conn))
+	servers = append(servers, gRPC.NewAuctionSystemClient(conn))
 	serverConns = append(serverConns, conn)
 }
 
 func joinChat() {
 	joinRequest := &gRPC.JoinRequest{
-		Name:        *clientsName,
-		LamportTime: 0,
+		Name: *clientsName,
 	}
 	log.Println(*clientsName, "is joining the chat")
 	for i := 0; i < 3; i++ {
@@ -80,7 +78,7 @@ func joinChat() {
 	}
 }
 
-func awaitResponse(stream gRPC.ChittyChat_JoinClient) {
+func awaitResponse(stream gRPC.AuctionSystem_JoinClient) {
 	for {
 		select {
 		case <-stream.Context().Done():
@@ -98,25 +96,17 @@ func awaitResponse(stream gRPC.ChittyChat_JoinClient) {
 			log.Fatalf("Failed to receive message from channel. \nErr: %v", err)
 		}
 
-		if incoming.LamportTime > *lamportTime {
-			*lamportTime = incoming.LamportTime + 1
-		} else {
-			*lamportTime++
-		}
-
-		log.Printf("%s got message from %s: %s", *clientsName, incoming.Sender, incoming.Message)
-		fmt.Printf("\rLamport: %v | %v: %v \n", *lamportTime, incoming.Sender, incoming.Message)
-		fmt.Print("-> ")
+		fmt.Println(incoming.Message + strconv.FormatInt(incoming.Bid, 10))
+		log.Printf(incoming.Message + strconv.FormatInt(incoming.Bid, 10) + "\n")
 	}
 }
 
 func parseAndSendInput() {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Type the amount you wish to increment with here. Type 0 to get the current value")
+	fmt.Println("Type \"bid [amount]\" or \"result\" to interact with the auction system")
 	fmt.Println("--------------------")
 
 	//Infinite loop to listen for clients input.
-	fmt.Print("-> ")
 	for {
 		//Read user input to the next newline
 		input, err := reader.ReadString('\n')
@@ -125,15 +115,32 @@ func parseAndSendInput() {
 		}
 		input = strings.TrimSpace(input) //Trim whitespace
 
-		// we are sending a message so we increment the lamport time
-		*lamportTime++
+		processInput(input)
+	}
+}
 
-		// publish the message in the chat
+// Determines if input is valid, and if its a "bid" or "result" request.
+func processInput(input string) {
+	if strings.Contains(input, "bid ") {
+		bid, _ := strconv.ParseInt(strings.Split(input, " ")[1], 10, 64)
+
 		for i := 0; i < 3; i++ {
 			response, err := servers[i].Publish(context.Background(), &gRPC.Message{
-				Sender:      *clientsName,
-				Message:     input,
-				LamportTime: *lamportTime,
+				Sender:  *clientsName,
+				Message: "bid",
+				Bid:     bid,
+			})
+			if err != nil || response == nil {
+				log.Printf("Client %s: something went wrong with the server :(", *clientsName)
+				continue
+			}
+		}
+	} else if strings.Contains(input, "result") {
+		for i := 0; i < 3; i++ {
+			response, err := servers[i].Publish(context.Background(), &gRPC.Message{
+				Sender:  *clientsName,
+				Message: "result",
+				Bid:     -1,
 			})
 			if err != nil || response == nil {
 				log.Printf("Client %s: something went wrong with the server :(", *clientsName)
