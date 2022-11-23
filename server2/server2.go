@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-type Server struct {
+type Server2 struct {
 	gRPC.UnimplementedChittyChatServer        // You need this line if you have a server struct
 	port                               string // Not required but useful if your server needs to know what port it's listening to
 
@@ -25,7 +25,7 @@ type Server struct {
 
 // flags are used to get arguments from the terminal. Flags take a value, a default value and a description of the flag.
 // to use a flag then just add it as an argument when running the program.
-var port = flag.String("port", "5400", "Server port") // set with "-port <port>" in terminal
+var port = flag.String("port", "5401", "Server port") // set with "-port <port>" in terminal
 
 func main() {
 
@@ -58,7 +58,7 @@ func launchServer() {
 	grpcServer := grpc.NewServer(opts...)
 
 	// makes a new server instance using the name and port from the flags.
-	server := &Server{
+	server := &Server2{
 		port:        *port,
 		streams:     make(map[string]*gRPC.ChittyChat_JoinServer),
 		LamportTime: 0,
@@ -74,7 +74,7 @@ func launchServer() {
 	// code here is unreachable because grpcServer.Serve occupies the current thread.
 }
 
-func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.ChittyChat_JoinServer) error {
+func (s *Server2) Join(request *gRPC.JoinRequest, stream gRPC.ChittyChat_JoinServer) error {
 	log.Printf("Server: Join request from %s\n", request.Name)
 
 	// adds the stream to the streams map
@@ -95,14 +95,14 @@ func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.ChittyChat_JoinServ
 	log.Println(request.Name, "disconnected")
 
 	sendToAll(s.streams, &gRPC.Message{
-		Sender:      "Server",
+		Sender:      "Server2",
 		Message:     request.Name + " has left the chat",
 		LamportTime: s.LamportTime,
 	})
 	return nil
 }
 
-func (s *Server) Publish(ctx context.Context, message *gRPC.Message) (*gRPC.PublishResponse, error) {
+func (s *Server2) Publish(ctx context.Context, message *gRPC.Message) (*gRPC.PublishResponse, error) {
 	if message.LamportTime < s.LamportTime {
 		message.LamportTime = s.LamportTime + 1
 	}
@@ -120,7 +120,7 @@ func sendToAll(streams map[string]*gRPC.ChittyChat_JoinServer, message *gRPC.Mes
 	for _, stream := range streams {
 		(*stream).Send(message)
 	}
-	fmt.Println("server")
+	fmt.Println("server2")
 }
 
 // Get preferred outbound ip of this machine

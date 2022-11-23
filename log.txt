@@ -1,8 +1,0 @@
-2022/11/14 23:32:05 alice is joining the chat
-2022/11/14 23:32:05 Server: Join request from alice
-2022/11/14 23:32:05 alice got message from Server: Welcome alice to the Chitty Chat!
-2022/11/14 23:32:12 alice got message from alice: h
-2022/11/14 23:32:16 bob is joining the chat
-2022/11/14 23:32:16 Server: Join request from bob
-2022/11/14 23:32:16 alice got message from Server: Welcome bob to the Chitty Chat!
-2022/11/14 23:32:16 bob got message from Server: Welcome bob to the Chitty Chat!
