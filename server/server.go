@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
 
 	// this has to be the same as the go.mod module,
 	// followed by the path to the folder the proto file is in.
@@ -25,10 +26,17 @@ type Server struct {
 
 // flags are used to get arguments from the terminal. Flags take a value, a default value and a description of the flag.
 // to use a flag then just add it as an argument when running the program.
-var port = flag.String("port", "5400", "Server port") // set with "-port <port>" in terminal
+var port *string        // set with "-port <port>" in terminal
+var serverName = "port" // name of the server
+var serverPort string   // port of the server port
+var serverSomething = "server port"
 
 func main() {
-
+	arg1, _ := strconv.ParseInt(os.Args[1], 10, 64)
+	serverPort32 := int64(arg1) + 5000
+	serverPort = strconv.FormatInt(serverPort32, 10)
+	fmt.Println(serverPort)
+	port = flag.String(serverName, serverPort, serverSomething)
 	f := setLog() //uncomment this line to log to a log.txt file instead of the console
 	defer f.Close()
 
