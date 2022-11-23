@@ -48,9 +48,7 @@ func main() {
 	go joinChat()
 
 	// start allowing user input
-	for i := 0; i < 3; i++ {
-		parseAndSendInput(i)
-	}
+	parseAndSendInput()
 }
 
 // connect to server
@@ -112,7 +110,7 @@ func awaitResponse(stream gRPC.ChittyChat_JoinClient) {
 	}
 }
 
-func parseAndSendInput(serverNumber int) {
+func parseAndSendInput() {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Type the amount you wish to increment with here. Type 0 to get the current value")
 	fmt.Println("--------------------")
@@ -131,15 +129,16 @@ func parseAndSendInput(serverNumber int) {
 		*lamportTime++
 
 		// publish the message in the chat
-		response, err := servers[serverNumber].Publish(context.Background(), &gRPC.Message{
-			Sender:      *clientsName,
-			Message:     input,
-			LamportTime: *lamportTime,
-		})
-
-		if err != nil || response == nil {
-			log.Printf("Client %s: something went wrong with the server :(", *clientsName)
-			continue
+		for i := 0; i < 3; i++ {
+			response, err := servers[i].Publish(context.Background(), &gRPC.Message{
+				Sender:      *clientsName,
+				Message:     input,
+				LamportTime: *lamportTime,
+			})
+			if err != nil || response == nil {
+				log.Printf("Client %s: something went wrong with the server :(", *clientsName)
+				continue
+			}
 		}
 	}
 }

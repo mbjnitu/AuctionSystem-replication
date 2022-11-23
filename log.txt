@@ -1,0 +1,18 @@
+2022/11/23 19:47:27 alice is joining the chat
+2022/11/23 19:47:40 alice is joining the chat
+2022/11/23 19:49:10 alice is joining the chat
+2022/11/23 19:49:10 Server: Join request from alice
+2022/11/23 19:49:10 Server: Join request from alice
+2022/11/23 19:49:10 Server: Join request from alice
+2022/11/23 19:49:10 alice got message from Server: Welcome alice to the Chitty Chat!
+2022/11/23 19:49:10 alice got message from Server: Welcome alice to the Chitty Chat!
+2022/11/23 19:49:10 alice got message from Server: Welcome alice to the Chitty Chat!
+2022/11/23 19:49:12 alice got message from alice: ff
+2022/11/23 19:49:12 alice got message from alice: ff
+2022/11/23 19:49:12 alice got message from alice: ff
+2022/11/23 19:49:13 alice got message from alice: ff
+2022/11/23 19:49:13 alice got message from alice: ff
+2022/11/23 19:49:13 alice got message from alice: ff
+2022/11/23 19:49:13 alice got message from alice: ff
+2022/11/23 19:49:13 alice got message from alice: ff
+2022/11/23 19:49:13 alice got message from alice: ff
