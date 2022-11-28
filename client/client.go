@@ -26,6 +26,10 @@ var serverPort2 = flag.String("server2", "5001", "Tcp server")
 var servers = []gRPC.AuctionSystemClient{}
 var serverConns []*grpc.ClientConn
 
+var responseNumber = 0
+var numberOfServers = 3
+var currentMessage string
+
 func main() {
 
 	//parse flag/arguments
@@ -93,12 +97,22 @@ func awaitResponse(stream gRPC.AuctionSystem_JoinClient) {
 			return
 		}
 		if err != nil {
-			log.Printf("Failed to receive message from channel. \nErr: %v", err.Error())
+			log.Printf("Failed to receive message from channel. Port: %v", strings.Split(err.Error(), ":")[4])
 			break
 		}
 
-		fmt.Println(incoming.Message + strconv.FormatInt(incoming.Bid, 10))
-		log.Printf(incoming.Message + strconv.FormatInt(incoming.Bid, 10) + "\n")
+		if responseNumber == 0 {
+			currentMessage = incoming.Message
+		}
+		if currentMessage == incoming.Message {
+			responseNumber++
+		}
+		if responseNumber == numberOfServers {
+			fmt.Println(incoming.Message + strconv.FormatInt(incoming.Bid, 10))
+			log.Printf(incoming.Message + strconv.FormatInt(incoming.Bid, 10) + "\n")
+			currentMessage = ""
+			responseNumber = 0
+		}
 	}
 }
 
@@ -133,7 +147,8 @@ func processInput(input string) {
 				Bid:     bid,
 			})
 			if err != nil || response == nil {
-				log.Printf("Client %s: something went wrong with the server :(", *clientsName)
+				log.Printf("Client %s: something went wrong with the server", *clientsName)
+				numberOfServers--
 				continue
 			}
 		}
@@ -145,6 +160,7 @@ func processInput(input string) {
 				Bid:     -1,
 			})
 			if err != nil || response == nil {
+				numberOfServers--
 				log.Printf("Client %s: something went wrong with the server :(", *clientsName)
 				continue
 			}
@@ -154,7 +170,7 @@ func processInput(input string) {
 
 // sets the logger to use a log.txt file instead of the console
 func setLog() *os.File {
-	f, err := os.OpenFile("client/log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	f, err := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
