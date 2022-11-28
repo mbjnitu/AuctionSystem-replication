@@ -1,16 +1,11 @@
-# Chitty Chat
+# Auction System
 
-For this assignment you needed to make a chat service.
-
-The service is defined in [ChittyChat.proto](proto/ChittyChat.proto)
-
-A user joins using the gRPC 'join' method.
-
-A user publishes and broadcasts using the gRPC 'publish' method.
-
-A user indicates to the server that it leaves when it stops the program.
+This repository is the answers to the assingment:
+https://learnit.itu.dk/mod/assign/view.php?id=169980
 
 ## How to run
+
+You have to run 3 servers, and an arbitrary amount of clients:
 
 Server:
 
@@ -25,3 +20,6 @@ Client:
 ```sh
 go run .\client\ -name alice
 ```
+Within the clients the following 2 commands can be run:
+1. "bid [amount]"
+2. "result"
