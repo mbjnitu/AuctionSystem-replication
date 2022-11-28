@@ -108,8 +108,13 @@ func awaitResponse(stream gRPC.AuctionSystem_JoinClient) {
 			responseNumber++
 		}
 		if responseNumber == numberOfServers {
-			fmt.Println(incoming.Message + strconv.FormatInt(incoming.Bid, 10))
-			log.Printf(incoming.Message + strconv.FormatInt(incoming.Bid, 10) + "\n")
+			if incoming.Bid > 0 {
+				fmt.Println(incoming.Message + strconv.FormatInt(incoming.Bid, 10))
+				log.Printf(incoming.Message + strconv.FormatInt(incoming.Bid, 10) + "\n")
+			} else {
+				fmt.Println(incoming.Message)
+				log.Printf(incoming.Message + "\n")
+			}
 			currentMessage = ""
 			responseNumber = 0
 		}

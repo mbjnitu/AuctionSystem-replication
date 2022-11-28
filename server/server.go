@@ -114,8 +114,6 @@ func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.AuctionSystem_JoinS
 
 func (s *Server) Publish(ctx context.Context, message *gRPC.Message) (*gRPC.PublishResponse, error) {
 
-	println("omg i received a message: ", message.Message)
-
 	processInput(message, s.streams)
 
 	return &gRPC.PublishResponse{}, nil
@@ -130,7 +128,7 @@ func processInput(message *gRPC.Message, streams map[string]*gRPC.AuctionSystem_
 			currentAmount = message.Bid
 			sendToAll(streams, &gRPC.Message{
 				Sender:  "Server",
-				Message: "A new highest bet has been set by " + message.Sender + "with a value of: ",
+				Message: "A new highest bet has been set by " + message.Sender + " with a value of: ",
 				Bid:     currentAmount,
 			})
 		} else if message.Bid <= currentAmount && !auctionOver {
@@ -140,11 +138,11 @@ func processInput(message *gRPC.Message, streams map[string]*gRPC.AuctionSystem_
 				Bid:     currentAmount,
 			}, message.Sender)
 		} else if auctionOver {
-			sendToSpecific(streams, &gRPC.Message{
+			sendToAll(streams, &gRPC.Message{
 				Sender:  "Server",
-				Message: "The auction is over, and was won by " + message.Sender + "at the price: ",
+				Message: "The auction is over, and was won by " + message.Sender + " at the price: ",
 				Bid:     currentAmount,
-			}, message.Sender)
+			})
 		}
 	} else if message.Message == "result" && !auctionOver {
 		sendToSpecific(streams, &gRPC.Message{
@@ -155,7 +153,7 @@ func processInput(message *gRPC.Message, streams map[string]*gRPC.AuctionSystem_
 	} else if auctionOver {
 		sendToAll(streams, &gRPC.Message{
 			Sender:  "Server",
-			Message: "The auction is over, and was won by " + message.Sender + "at the price: ",
+			Message: "The auction is over, and was won by " + message.Sender + " at the price: ",
 			Bid:     currentAmount,
 		})
 	}
@@ -165,7 +163,6 @@ func processInput(message *gRPC.Message, streams map[string]*gRPC.AuctionSystem_
 func sendToSpecific(streams map[string]*gRPC.AuctionSystem_JoinServer, message *gRPC.Message, sender string) {
 	stream := streams[sender]
 	(*stream).Send(message)
-	fmt.Println("server")
 }
 
 // sends a message to all streams in the streams map
@@ -173,7 +170,6 @@ func sendToAll(streams map[string]*gRPC.AuctionSystem_JoinServer, message *gRPC.
 	for _, stream := range streams {
 		(*stream).Send(message)
 	}
-	fmt.Println("server")
 }
 
 // Get preferred outbound ip of this machine
