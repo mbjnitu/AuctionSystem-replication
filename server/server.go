@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"time"
 
 	// this has to be the same as the go.mod module,
 	// followed by the path to the folder the proto file is in.
@@ -32,6 +33,7 @@ var serverSomething = "server port"
 
 // Vars related to bidding:
 var currentAmount int64 = 0
+var auctionOver bool = false
 
 func main() {
 	arg1, _ := strconv.ParseInt(os.Args[1], 10, 64)
@@ -48,6 +50,8 @@ func main() {
 
 	// starts a goroutine executing the launchServer method.
 	launchServer()
+
+	go endAuction()
 
 	// code here is unreachable because launchServer occupies the current thread.
 }
@@ -92,7 +96,7 @@ func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.AuctionSystem_JoinS
 	// sends a message to the client
 	sendToAll(s.streams, &gRPC.Message{
 		Sender:  "Server",
-		Message: "Welcome " + request.Name + " to the Chitty Chat!",
+		Message: "Welcome " + request.Name + " to the auction!",
 		Bid:     0,
 	})
 
@@ -105,7 +109,7 @@ func (s *Server) Join(request *gRPC.JoinRequest, stream gRPC.AuctionSystem_JoinS
 
 	sendToAll(s.streams, &gRPC.Message{
 		Sender:  "Server",
-		Message: request.Name + " has left the chat",
+		Message: request.Name + " has left the auction",
 		Bid:     0,
 	})
 	return nil
@@ -121,7 +125,7 @@ func (s *Server) Publish(ctx context.Context, message *gRPC.Message) (*gRPC.Publ
 }
 
 func processInput(message *gRPC.Message, streams map[string]*gRPC.AuctionSystem_JoinServer) {
-	if message.Message == "bid" {
+	if message.Message == "bid" && !auctionOver {
 		if message.Bid > currentAmount {
 			currentAmount = message.Bid
 			sendToAll(streams, &gRPC.Message{
@@ -135,15 +139,19 @@ func processInput(message *gRPC.Message, streams map[string]*gRPC.AuctionSystem_
 				Message: "Your bid is not greater than the current highest bid of: ",
 				Bid:     currentAmount,
 			}, message.Sender)
-		} else {
-			//IMPLEMENT AUCTION OVER
 		}
-	} else if message.Message == "result" {
+	} else if message.Message == "result" && !auctionOver {
 		sendToSpecific(streams, &gRPC.Message{
 			Sender:  "Server",
 			Message: "The current result is: ",
 			Bid:     currentAmount,
 		}, message.Sender)
+	} else if auctionOver {
+		sendToAll(streams, &gRPC.Message{
+			Sender:  "Server",
+			Message: "The auction is over, and was win by " + message.Sender + "at the price: ",
+			Bid:     currentAmount,
+		})
 	}
 }
 
@@ -190,4 +198,10 @@ func setLog() *os.File {
 	}
 	log.SetOutput(f)
 	return f
+}
+
+func endAuction() {
+	time.Sleep(120 * time.Second)
+	auctionOver = true
+	log.Printf("Auction has ended")
 }

@@ -1,18 +1,9 @@
-2022/11/23 19:47:27 alice is joining the chat
-2022/11/23 19:47:40 alice is joining the chat
-2022/11/23 19:49:10 alice is joining the chat
-2022/11/23 19:49:10 Server: Join request from alice
-2022/11/23 19:49:10 Server: Join request from alice
-2022/11/23 19:49:10 Server: Join request from alice
-2022/11/23 19:49:10 alice got message from Server: Welcome alice to the Chitty Chat!
-2022/11/23 19:49:10 alice got message from Server: Welcome alice to the Chitty Chat!
-2022/11/23 19:49:10 alice got message from Server: Welcome alice to the Chitty Chat!
-2022/11/23 19:49:12 alice got message from alice: ff
-2022/11/23 19:49:12 alice got message from alice: ff
-2022/11/23 19:49:12 alice got message from alice: ff
-2022/11/23 19:49:13 alice got message from alice: ff
-2022/11/23 19:49:13 alice got message from alice: ff
-2022/11/23 19:49:13 alice got message from alice: ff
-2022/11/23 19:49:13 alice got message from alice: ff
-2022/11/23 19:49:13 alice got message from alice: ff
-2022/11/23 19:49:13 alice got message from alice: ff
+2022/11/27 14:39:49 alice is joining the chat
+2022/11/27 14:39:49 Server: Join request from alice
+2022/11/27 14:39:49 Welcome alice to the auction!0
+2022/11/27 14:39:52 A new highest bet has been set by alicewith a value of: 500
+2022/11/27 14:40:00 The current result is: 500
+2022/11/27 14:40:00 Client alice: something went wrong with the server :(
+2022/11/27 14:40:00 Client alice: something went wrong with the server :(
+2022/11/27 14:43:14 Failed to receive message from channel. 
+Err: rpc error: code = Unavailable desc = error reading from server: read tcp 127.0.0.1:65019->127.0.0.1:5000: wsarecv: An existing connection was forcibly closed by the remote host.

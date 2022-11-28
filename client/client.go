@@ -31,7 +31,7 @@ func main() {
 	//parse flag/arguments
 	flag.Parse()
 
-	fmt.Println("--- Welcome to Chitty Chat ---")
+	fmt.Println("--- Welcome to the auction---")
 
 	//log to file instead of console
 	f := setLog()
@@ -71,10 +71,10 @@ func joinChat() {
 	joinRequest := &gRPC.JoinRequest{
 		Name: *clientsName,
 	}
-	log.Println(*clientsName, "is joining the chat")
+	log.Println(*clientsName, "is joining the auction")
 	for i := 0; i < 3; i++ {
 		stream, _ := servers[i].Join(context.Background(), joinRequest)
-		go awaitResponse(stream)
+		awaitResponse(stream)
 	}
 }
 
