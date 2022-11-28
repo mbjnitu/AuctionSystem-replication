@@ -74,7 +74,7 @@ func joinChat() {
 	log.Println(*clientsName, "is joining the auction")
 	for i := 0; i < 3; i++ {
 		stream, _ := servers[i].Join(context.Background(), joinRequest)
-		awaitResponse(stream)
+		go awaitResponse(stream)
 	}
 }
 
