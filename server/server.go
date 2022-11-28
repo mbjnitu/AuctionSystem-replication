@@ -50,9 +50,6 @@ func main() {
 
 	// starts a goroutine executing the launchServer method.
 	launchServer()
-
-	go endAuction()
-
 	// code here is unreachable because launchServer occupies the current thread.
 }
 
@@ -125,18 +122,27 @@ func (s *Server) Publish(ctx context.Context, message *gRPC.Message) (*gRPC.Publ
 }
 
 func processInput(message *gRPC.Message, streams map[string]*gRPC.AuctionSystem_JoinServer) {
-	if message.Message == "bid" && !auctionOver {
-		if message.Bid > currentAmount {
+	if message.Message == "bid" {
+		if message.Bid > currentAmount && !auctionOver {
+			if currentAmount == 0 {
+				go endAuction(message, streams)
+			}
 			currentAmount = message.Bid
 			sendToAll(streams, &gRPC.Message{
 				Sender:  "Server",
 				Message: "A new highest bet has been set by " + message.Sender + "with a value of: ",
 				Bid:     currentAmount,
 			})
-		} else if message.Bid <= currentAmount {
+		} else if message.Bid <= currentAmount && !auctionOver {
 			sendToSpecific(streams, &gRPC.Message{
 				Sender:  "Server",
 				Message: "Your bid is not greater than the current highest bid of: ",
+				Bid:     currentAmount,
+			}, message.Sender)
+		} else if auctionOver {
+			sendToSpecific(streams, &gRPC.Message{
+				Sender:  "Server",
+				Message: "The auction is over, and was won by " + message.Sender + "at the price: ",
 				Bid:     currentAmount,
 			}, message.Sender)
 		}
@@ -149,7 +155,7 @@ func processInput(message *gRPC.Message, streams map[string]*gRPC.AuctionSystem_
 	} else if auctionOver {
 		sendToAll(streams, &gRPC.Message{
 			Sender:  "Server",
-			Message: "The auction is over, and was win by " + message.Sender + "at the price: ",
+			Message: "The auction is over, and was won by " + message.Sender + "at the price: ",
 			Bid:     currentAmount,
 		})
 	}
@@ -200,8 +206,10 @@ func setLog() *os.File {
 	return f
 }
 
-func endAuction() {
-	time.Sleep(120 * time.Second)
+func endAuction(message *gRPC.Message, streams map[string]*gRPC.AuctionSystem_JoinServer) {
+	time.Sleep(10 * time.Second)
 	auctionOver = true
+	fmt.Println("Auction has ended")
 	log.Printf("Auction has ended")
+	processInput(message, streams)
 }
