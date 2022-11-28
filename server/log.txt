@@ -1,0 +1,11 @@
+2022/11/28 20:43:23 Server: Join request from alice
+2022/11/28 20:43:23 Server: Join request from alice
+2022/11/28 20:43:23 Server: Join request from alice
+2022/11/28 20:43:23 Server: Join request from steve
+2022/11/28 20:43:23 Server: Join request from steve
+2022/11/28 20:43:23 Server: Join request from steve
+2022/11/28 20:43:40 Auction has ended
+2022/11/28 20:43:40 Auction has ended
+2022/11/28 20:43:40 Auction has ended
+2022/11/28 20:44:11 alice disconnected
+2022/11/28 20:44:11 alice disconnected

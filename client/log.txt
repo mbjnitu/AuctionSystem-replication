@@ -1,8 +1,20 @@
-2022/11/28 19:00:40 Failed to receive message from channel. Port: 5002
-2022/11/28 19:00:40 Failed to receive message from channel. Port: 5002
-2022/11/28 19:00:41 Failed to receive message from channel. Port: 5001
-2022/11/28 19:00:41 Failed to receive message from channel. Port: 5001
-2022/11/28 19:00:43 Failed to receive message from channel. Port: 5000
-2022/11/28 19:00:43 Failed to receive message from channel. Port: 5000
-2022/11/28 19:00:45 EOF
-2022/11/28 19:00:47 EOF
+2022/11/28 20:43:23 alice is joining the auction
+2022/11/28 20:43:23 Welcome alice to the auction!
+2022/11/28 20:43:23 steve is joining the auction
+2022/11/28 20:43:23 Welcome steve to the auction!
+2022/11/28 20:43:23 Welcome steve to the auction!
+2022/11/28 20:43:30 A new highest bet has been set by alice with a value of: 100
+2022/11/28 20:43:30 A new highest bet has been set by alice with a value of: 100
+2022/11/28 20:43:35 A new highest bet has been set by steve with a value of: 200
+2022/11/28 20:43:35 A new highest bet has been set by steve with a value of: 200
+2022/11/28 20:43:39 The current result is: 200
+2022/11/28 20:43:40 The auction is over, and was won by steve at the price: 200
+2022/11/28 20:43:40 The auction is over, and was won by steve at the price: 200
+2022/11/28 20:43:48 The auction is over, and was won by steve at the price: 200
+2022/11/28 20:43:48 The auction is over, and was won by steve at the price: 200
+2022/11/28 20:43:59 The auction is over, and was won by steve at the price: 200
+2022/11/28 20:43:59 The auction is over, and was won by steve at the price: 200
+2022/11/28 20:44:02 Failed to receive message from channel. Port: 5000
+2022/11/28 20:44:02 Failed to receive message from channel. Port: 5000
+2022/11/28 20:44:07 Client alice: something went wrong with the server :(
+2022/11/28 20:44:07 The auction is over, and was won by steve at the price: 200

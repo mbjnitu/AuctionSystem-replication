@@ -23,3 +23,5 @@ go run .\client\ -name alice
 Within the clients the following 2 commands can be run:
 1. "bid [amount]"
 2. "result"
+
+To simulate a server crash, simply click crtl+c in one of the 3 server terminals.

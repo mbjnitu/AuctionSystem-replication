@@ -33,6 +33,7 @@ var serverSomething = "server port"
 
 // Vars related to bidding:
 var currentAmount int64 = 0
+var currentHighestBidder string
 var auctionOver bool = false
 
 func main() {
@@ -126,9 +127,10 @@ func processInput(message *gRPC.Message, streams map[string]*gRPC.AuctionSystem_
 				go endAuction(message, streams)
 			}
 			currentAmount = message.Bid
+			currentHighestBidder = message.Sender
 			sendToAll(streams, &gRPC.Message{
 				Sender:  "Server",
-				Message: "A new highest bet has been set by " + message.Sender + " with a value of: ",
+				Message: "A new highest bet has been set by " + currentHighestBidder + " with a value of: ",
 				Bid:     currentAmount,
 			})
 		} else if message.Bid <= currentAmount && !auctionOver {
@@ -140,7 +142,7 @@ func processInput(message *gRPC.Message, streams map[string]*gRPC.AuctionSystem_
 		} else if auctionOver {
 			sendToAll(streams, &gRPC.Message{
 				Sender:  "Server",
-				Message: "The auction is over, and was won by " + message.Sender + " at the price: ",
+				Message: "The auction is over, and was won by " + currentHighestBidder + " at the price: ",
 				Bid:     currentAmount,
 			})
 		}
@@ -153,7 +155,7 @@ func processInput(message *gRPC.Message, streams map[string]*gRPC.AuctionSystem_
 	} else if auctionOver {
 		sendToAll(streams, &gRPC.Message{
 			Sender:  "Server",
-			Message: "The auction is over, and was won by " + message.Sender + " at the price: ",
+			Message: "The auction is over, and was won by " + currentHighestBidder + " at the price: ",
 			Bid:     currentAmount,
 		})
 	}
