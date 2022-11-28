@@ -39,3 +39,45 @@ Err: rpc error: code = Unavailable desc = error reading from server: read tcp 12
 2022/11/23 19:34:03 alice got message from alice: hey
 2022/11/23 19:36:16 Failed to receive message from channel. 
 Err: rpc error: code = Unavailable desc = error reading from server: read tcp 127.0.0.1:59822->127.0.0.1:5001: wsarecv: An existing connection was forcibly closed by the remote host.
+2022/11/28 16:37:14 default is joining the auction
+2022/11/28 16:37:14 Welcome default to the auction!0
+2022/11/28 16:37:26 A new highest bet has been set by defaultwith a value of: 100
+2022/11/28 16:38:58 Failed to receive message from channel. 
+Err: rpc error: code = Unavailable desc = error reading from server: read tcp 127.0.0.1:62641->127.0.0.1:5000: wsarecv: An existing connection was forcibly closed by the remote host.
+2022/11/28 16:40:43 default is joining the auction
+2022/11/28 16:40:43 Welcome default to the auction!0
+2022/11/28 16:40:43 Welcome default to the auction!0
+2022/11/28 16:40:43 Welcome default to the auction!0
+2022/11/28 16:42:57 Failed to receive message from channel. 
+Err: rpc error: code = Unavailable desc = error reading from server: read tcp 127.0.0.1:62768->127.0.0.1:5000: wsarecv: An existing connection was forcibly closed by the remote host.
+2022/11/28 16:43:11 default is joining the auction
+2022/11/28 16:43:11 Welcome default to the auction!0
+2022/11/28 16:43:11 Welcome default to the auction!0
+2022/11/28 16:43:11 Welcome default to the auction!0
+2022/11/28 16:43:15 A new highest bet has been set by defaultwith a value of: 100
+2022/11/28 16:43:15 A new highest bet has been set by defaultwith a value of: 100
+2022/11/28 16:43:15 A new highest bet has been set by defaultwith a value of: 100
+2022/11/28 16:44:50 Failed to receive message from channel. 
+Err: rpc error: code = Unavailable desc = error reading from server: read tcp 127.0.0.1:61909->127.0.0.1:5000: wsarecv: An existing connection was forcibly closed by the remote host.
+2022/11/28 16:44:59 default is joining the auction
+2022/11/28 16:44:59 Welcome default to the auction!0
+2022/11/28 16:44:59 Welcome default to the auction!0
+2022/11/28 16:44:59 Welcome default to the auction!0
+2022/11/28 16:45:03 Failed to receive message from channel. 
+Err: rpc error: code = Unavailable desc = error reading from server: read tcp 127.0.0.1:61972->127.0.0.1:5000: wsarecv: An existing connection was forcibly closed by the remote host.
+2022/11/28 16:46:07 default is joining the auction
+2022/11/28 16:46:07 Welcome default to the auction!0
+2022/11/28 16:46:07 Welcome default to the auction!0
+2022/11/28 16:46:07 Welcome default to the auction!0
+2022/11/28 16:46:08 Failed to receive message from channel. 
+Err: rpc error: code = Unavailable desc = error reading from server: read tcp 127.0.0.1:62025->127.0.0.1:5001: wsarecv: An existing connection was forcibly closed by the remote host.
+2022/11/28 16:49:50 default is joining the auction
+2022/11/28 16:49:50 Welcome default to the auction!0
+2022/11/28 16:49:50 Welcome default to the auction!0
+2022/11/28 16:49:50 Welcome default to the auction!0
+2022/11/28 16:49:52 A new highest bet has been set by defaultwith a value of: 100
+2022/11/28 16:49:52 A new highest bet has been set by defaultwith a value of: 100
+2022/11/28 16:49:52 A new highest bet has been set by defaultwith a value of: 100
+2022/11/28 16:50:02 The auction is over, and was won by defaultat the price: 100
+2022/11/28 16:50:02 The auction is over, and was won by defaultat the price: 100
+2022/11/28 16:50:02 The auction is over, and was won by defaultat the price: 100
