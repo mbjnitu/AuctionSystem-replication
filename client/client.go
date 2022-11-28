@@ -74,7 +74,7 @@ func joinChat() {
 	log.Println(*clientsName, "is joining the auction")
 	for i := 0; i < 3; i++ {
 		stream, _ := servers[i].Join(context.Background(), joinRequest)
-		awaitResponse(stream)
+		go awaitResponse(stream)
 	}
 }
 
@@ -93,7 +93,8 @@ func awaitResponse(stream gRPC.AuctionSystem_JoinClient) {
 			return
 		}
 		if err != nil {
-			log.Fatalf("Failed to receive message from channel. \nErr: %v", err)
+			log.Printf("Failed to receive message from channel. \nErr: %v", err.Error())
+			break
 		}
 
 		fmt.Println(incoming.Message + strconv.FormatInt(incoming.Bid, 10))
@@ -111,6 +112,7 @@ func parseAndSendInput() {
 		//Read user input to the next newline
 		input, err := reader.ReadString('\n')
 		if err != nil {
+			fmt.Printf(err.Error())
 			log.Fatal(err)
 		}
 		input = strings.TrimSpace(input) //Trim whitespace
@@ -152,7 +154,7 @@ func processInput(input string) {
 
 // sets the logger to use a log.txt file instead of the console
 func setLog() *os.File {
-	f, err := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	f, err := os.OpenFile("client/log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}

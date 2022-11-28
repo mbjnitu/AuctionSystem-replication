@@ -192,7 +192,7 @@ func setLog() *os.File {
 	}
 
 	// This connects to the log file/changes the output of the log informaiton to the log.txt file.
-	f, err := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	f, err := os.OpenFile("server/log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
